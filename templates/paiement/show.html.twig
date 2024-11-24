@@ -1,0 +1,102 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails du paiement{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto">
+        <div class="mb-6 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-900">Détails du paiement</h1>
+            <a href="{{ path('app_paiement_index') }}" class="text-indigo-600 hover:text-indigo-900">Retour à la liste</a>
+        </div>
+
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                    Référence: {{ paiement.reference }}
+                </h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                    Créé le {{ paiement.createdAt|date('d/m/Y H:i') }}
+                </p>
+            </div>
+            <div class="border-t border-gray-200">
+                <dl>
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Bénéficiaire</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ paiement.beneficiaire.nom }}</dd>
+                    </div>
+                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Montant</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ paiement.montant|number_format(2, ',', ' ') }} FCFA</dd>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Frais</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ paiement.frais|number_format(2, ',', ' ') }} FCFA</dd>
+                    </div>
+                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Méthode</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ paiement.methode|upper }}</dd>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Statut</dt>
+                        <dd class="mt-1 sm:mt-0 sm:col-span-2">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {% if paiement.status == 'success' %}
+                                    bg-green-100 text-green-800
+                                {% elseif paiement.status == 'pending' %}
+                                    bg-yellow-100 text-yellow-800
+                                {% else %}
+                                    bg-red-100 text-red-800
+                                {% endif %}">
+                                {{ paiement.status }}
+                            </span>
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        {% if paiement.status == 'pending' %}
+            <div class="mt-6 flex justify-center">
+                <button id="check-status" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded" 
+                        data-url="{{ path('app_paiement_check_status', {'id': paiement.id}) }}">
+                    Vérifier le statut
+                </button>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% block javascripts %}
+<script>
+document.getElementById('check-status')?.addEventListener('click', async function() {
+    const button = this;
+    const url = button.dataset.url;
+    
+    button.disabled = true;
+    button.textContent = 'Vérification en cours...';
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            window.location.reload();
+        } else {
+            button.textContent = 'Vérifier le statut';
+            button.disabled = false;
+        }
+    } catch (error) {
+        console.error('Erreur lors de la vérification:', error);
+        button.textContent = 'Vérifier le statut';
+        button.disabled = false;
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}

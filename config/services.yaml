@@ -1,0 +1,25 @@
+parameters:
+    mtn_money.api_key: '%env(MTN_MONEY_API_KEY)%'
+    mtn_money.api_secret: '%env(MTN_MONEY_API_SECRET)%'
+    orange_money.api_key: '%env(ORANGE_MONEY_API_KEY)%'
+    orange_money.api_secret: '%env(ORANGE_MONEY_API_SECRET)%'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    App\Service\PaymentGateway\MTNMoneyGateway:
+        arguments:
+            $params: '@parameter_bag'
+
+    App\Service\PaymentGateway\OrangeMoneyGateway:
+        arguments:
+            $params: '@parameter_bag'
